@@ -1,5 +1,6 @@
-from lr_2 import Daemon
-import sys
+import os, sys
+import pathlib
+from daemon import Daemon
 import time
 import subprocess
 import gi
@@ -7,21 +8,39 @@ gi.require_version('Notify', '0.7')
 from gi.repository import Notify
 
 
+cwd = pathlib.Path(__file__).parent.resolve()
+
+
+def fetch_log(folder):
+    subprocess.run(['git', f'--git-dir={cwd}/{folder}/.git', 'fetch'])
+    result = subprocess.run(['git', f'--git-dir={cwd}/{folder}/.git', 'log', '--graph', "--pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'", '--abbrev-commit', '--date=relative', 'master..origin/master'], text=True, capture_output=True)
+    output = result.stdout
+    return output
+
+
+
 class MyDaemon(Daemon):
     def run(self):
 
         Notify.init("MyDaemon")
+        time.sleep(2)
+        folder_names = [name for name in os.listdir(cwd) if os.path.isdir(f'{cwd}/{name}')]
 
         while True:
-            subprocess.run(['cd', '~/projects/pythops/lr_2/testing2'])
-            subprocess.run(['git', 'fetch'])
-            result = subprocess.run(['git', 'log', '--graph', '--pretty=format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset', '--abbrev-commit', '--date=relative', 'master..origin/master'], capture_output=True, text=True)
-            output = result.stdout
 
-            if output:
-                Notify.Notification.new(output).show()
-                
-            time.sleep(5)
+        
+            # subprocess.run(['git', 'fetch'])
+            # result = subprocess.run(['git', 'log', '--graph', "--pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'", '--abbrev-commit', '--date=relative', 'master..origin/master'], capture_output=True, text=True)
+            
+            # Run for folder1
+            for folder in folder_names:
+                output = fetch_log(folder)
+            
+                if output:
+                    Notify.Notification.new(f'FOLDER {folder}', output).show()
+
+
+            time.sleep(15)
 
 
 daemon = MyDaemon('/tmp/daemon-example.pid')
