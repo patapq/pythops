@@ -23,16 +23,11 @@ class MyDaemon(Daemon):
     def run(self):
 
         Notify.init("MyDaemon")
-        time.sleep(2)
+        time.sleep(1)
         folder_names = [name for name in os.listdir(cwd) if os.path.isdir(f'{cwd}/{name}')]
 
         while True:
 
-        
-            # subprocess.run(['git', 'fetch'])
-            # result = subprocess.run(['git', 'log', '--graph', "--pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset'", '--abbrev-commit', '--date=relative', 'master..origin/master'], capture_output=True, text=True)
-            
-            # Run for folder1
             for folder in folder_names:
                 output = fetch_log(folder)
             
